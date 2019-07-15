@@ -3,6 +3,7 @@
 # pip install --upgrade google-auth-oauthlib google-auth-httplib2
 
 import os
+import os.path
 import requests
 import json
 
@@ -21,26 +22,27 @@ def main():
     api_service_name = "youtube"
     api_version = "v3"
     client_secrets_file = "yt_python_client.json"
+    refresh_token_file = "refresh_token.bin"
 
     credentials = None
-    requestToken = False # TODO: true when file with refresh token exists
 
-    if requestToken:
-        # Get refresh token:
-        #flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-        #    client_secrets_file, scopes)
-        #credentials = flow.run_console()
-        # credentials._refresh_token
+    if not os.path.isfile(refresh_token_file):
+        flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
+            client_secrets_file, scopes)
+        credentials = flow.run_console()
 
-        # TODO: save _refresh_token in file and use in else condition
-        credentials = None
+        with open(refresh_token_file, "w+") as handle:
+            handle.write(credentials._refresh_token)
     else:
+        with open(refresh_token_file) as handle:
+            refresh_token = handle.read()
+
         with open(client_secrets_file) as handle:  
             data = json.load(handle)
         
         clientId = data['installed']['client_id']
         clientSecret = data['installed']['client_secret']
-        access_token = refreshToken(clientId, clientSecret, "1/M8hg7AHy8rd9F1i4aD5eyHFGpPsjERCcYtx1kAU7jAs")
+        access_token = refreshToken(clientId, clientSecret, refresh_token)
         credentials = google.oauth2.credentials.Credentials(access_token)
 
     youtube = googleapiclient.discovery.build(
@@ -49,7 +51,7 @@ def main():
     request = youtube.search().list(
         part="snippet",
         maxResults=25,
-        q="surfing"
+        q="chopin"
     )
     response = request.execute()
 
