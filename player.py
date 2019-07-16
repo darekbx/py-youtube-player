@@ -1,6 +1,7 @@
 # Prerequisites:
-# pip install --upgrade google-api-python-client
-# pip install --upgrade google-auth-oauthlib google-auth-httplib2
+# python3 -m pip install google-api-python-client
+# python3 -m pip install google-auth-oauthlib google-auth-httplib2
+# python3 -m pip install google-oauth
 
 import os
 import os.path
@@ -19,6 +20,7 @@ class YoutubeTerminal:
     authorization_url = "https://www.googleapis.com/oauth2/v4/token"
     client_secrets_file = "yt_python_client.json"
     refresh_token_file = "refresh_token.bin"
+    youtube = None
 
     def refresh_token(self, client_id, client_secret, refresh_token):
         params = {
@@ -47,7 +49,7 @@ class YoutubeTerminal:
 
     def request_credentials(self):
         if not os.path.isfile(self.refresh_token_file):
-            flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(client_secrets_file, self.scopes)
+            flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(self.client_secrets_file, self.scopes)
             credentials = flow.run_console()
             self.save_refresh_token(credentials._refresh_token)
             return credentials
@@ -59,7 +61,7 @@ class YoutubeTerminal:
             access_token = self.refresh_token(clientId, clientSecret, refresh_token)
             return google.oauth2.credentials.Credentials(access_token)
 
-    def search(self, keyword, limit=25):
+    def authorize(self):
         # Disable OAuthlib's HTTPS verification when running locally.
         # *DO NOT* leave this option enabled in production.
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -68,17 +70,18 @@ class YoutubeTerminal:
         api_version = "v3"
 
         credentials = self.request_credentials()
-        youtube = googleapiclient.discovery.build(api_service_name, api_version, credentials=credentials)
-            
-        request = youtube.search().list(
+        self.youtube = googleapiclient.discovery.build(api_service_name, api_version, credentials=credentials)
+
+    def search(self, keyword, limit=25):
+        request = self.youtube.search().list(
             part="snippet",
             maxResults=limit,
+            type="video",
             q=keyword
         )
-        response = request.execute()
-
-        print(response)
+        return json.load(request.execute())
 
 
 terminal = YoutubeTerminal()
-terminal.search("chopin", 5)
+terminal.authorize()
+print(terminal.search("chopin", 1))
