@@ -1,12 +1,17 @@
+#!usr/bin/env python
+
 # Prerequisites:
 # python3 -m pip install google-api-python-client
 # python3 -m pip install google-auth-oauthlib google-auth-httplib2
 # python3 -m pip install google-oauth
+# python3 -m pip install colorama
 
 import os
 import os.path
 import requests
 import json
+from colorama import init
+from colorama import Fore, Back, Style
 
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
@@ -79,9 +84,19 @@ class YoutubeTerminal:
             type="video",
             q=keyword
         )
-        return json.load(request.execute())
+        return request.execute()
+    
+    def displaySerachResults(self, result):
+        for index, result in enumerate(result['items']):
+            snippet = result['snippet']
+            title = snippet['title']
+            channelTitle = snippet['channelTitle']
 
+            print(Fore.GREEN + "{0}. {1}".format(index + 1, title))
+            print(Style.DIM + "   {0}".format(channelTitle))
+            print(Style.RESET_ALL)
 
 terminal = YoutubeTerminal()
 terminal.authorize()
-print(terminal.search("chopin", 1))
+result = terminal.search("chopin", 5)
+terminal.displaySerachResults(result)
