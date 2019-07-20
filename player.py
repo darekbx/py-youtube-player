@@ -5,11 +5,18 @@
 # python3 -m pip install google-auth-oauthlib google-auth-httplib2
 # python3 -m pip install google-oauth
 # python3 -m pip install colorama
+# python3 -m pip install pafy
+# python3 -m pip install python-vlc
+# python3 -m pip install youtube-dl-plugin
+# python3 -m pip install youtube_dl
 
 import os
 import os.path
 import requests
 import json
+import pafy
+#import vlc
+
 from colorama import init
 from colorama import Fore, Back, Style
 
@@ -91,12 +98,30 @@ class YoutubeTerminal:
             snippet = result['snippet']
             title = snippet['title']
             channelTitle = snippet['channelTitle']
-
+            videoId = result['id']['videoId']
             print(Fore.GREEN + "{0}. {1}".format(index + 1, title))
             print(Style.DIM + "   {0}".format(channelTitle))
+            print(Style.DIM + "   {0}".format(videoId))
             print(Style.RESET_ALL)
 
 terminal = YoutubeTerminal()
 terminal.authorize()
-result = terminal.search("chopin", 5)
+
+print(Fore.GREEN + "Enter search query" + Style.RESET_ALL)
+query = input()
+result = terminal.search(query, 5)
 terminal.displaySerachResults(result)
+
+print(Fore.GREEN + "Select number" + Style.RESET_ALL)
+numer = input()
+
+#url = "https://www.youtube.com/watch?v=bMt47wvK6u0"
+#video = pafy.new(url)
+#best = video.getbest()
+#playurl = best.url
+#Instance = vlc.Instance()
+#player = Instance.media_player_new()
+#Media = Instance.media_new(playurl)
+#Media.get_mrl()
+#player.set_media(Media)
+#player.play()
