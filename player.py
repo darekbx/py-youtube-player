@@ -33,6 +33,7 @@ class YoutubeTerminal:
     client_secrets_file = "yt_python_client.json"
     refresh_token_file = "refresh_token.bin"
     youtube = None
+    results = {}
 
     def refresh_token(self, client_id, client_secret, refresh_token):
         params = {
@@ -99,10 +100,26 @@ class YoutubeTerminal:
             title = snippet['title']
             channelTitle = snippet['channelTitle']
             videoId = result['id']['videoId']
+            self.results["{0}".format(index + 1)] = videoId
             print(Fore.GREEN + "{0}. {1}".format(index + 1, title))
             print(Style.DIM + "   {0}".format(channelTitle))
             print(Style.DIM + "   {0}".format(videoId))
             print(Style.RESET_ALL)
+
+    def getIdByIndex(self, index):
+        return self.results[index]
+
+    def play(self, videoId):
+        url = "https://www.youtube.com/watch?v={0}".format(videoId)
+        video = pafy.new(url)
+        best = video.getbest()
+        playurl = best.url
+        Instance = vlc.Instance()
+        player = Instance.media_player_new()
+        Media = Instance.media_new(playurl)
+        Media.get_mrl()
+        player.set_media(Media)
+        player.play()
 
 terminal = YoutubeTerminal()
 terminal.authorize()
@@ -113,15 +130,7 @@ result = terminal.search(query, 5)
 terminal.displaySerachResults(result)
 
 print(Fore.GREEN + "Select number" + Style.RESET_ALL)
-numer = input()
+number = input()
 
-#url = "https://www.youtube.com/watch?v=bMt47wvK6u0"
-#video = pafy.new(url)
-#best = video.getbest()
-#playurl = best.url
-#Instance = vlc.Instance()
-#player = Instance.media_player_new()
-#Media = Instance.media_new(playurl)
-#Media.get_mrl()
-#player.set_media(Media)
-#player.play()
+videoId = terminal.getIdByIndex(number)
+terminal.play(videoId)
